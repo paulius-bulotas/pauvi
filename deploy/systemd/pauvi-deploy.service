@@ -1,0 +1,9 @@
+[Unit]
+Description=Update and deploy Pauvi Docker stack
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/pauvi-deploy

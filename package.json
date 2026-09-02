@@ -1,0 +1,22 @@
+{
+  "name": "pauvi",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix FE install && npm --prefix BE install",
+    "dev": "concurrently -n FE,BE \"npm --prefix FE run dev\" \"npm --prefix BE run dev\"",
+    "dev:fe": "npm --prefix FE run dev",
+    "dev:be": "npm --prefix BE run dev",
+    "build": "npm run build:fe && npm run build:be",
+    "build:fe": "npm --prefix FE run build",
+    "build:be": "npm --prefix BE run build",
+    "start:be": "npm --prefix BE start",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f --tail=100"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

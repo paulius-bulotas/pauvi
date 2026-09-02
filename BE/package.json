@@ -1,0 +1,21 @@
+{
+  "name": "pauvi-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "build": "node --check index.js"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mysql2": "^3.14.5"
+  }
+}

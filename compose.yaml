@@ -1,0 +1,65 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${DATA_ROOT}/mysql:/var/lib/mysql
+    ports:
+      - "127.0.0.1:${MYSQL_HOST_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - pauvi
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pauvi
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_HTTP_PORT:-8081}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - pauvi
+
+networks:
+  pauvi:
+    driver: bridge

@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+FE/node_modules/
+BE/node_modules/
+
+# builds
+FE/dist/
+
+# local env / secrets
+.env
+.env.local
+.env.*.local
+FE/.env
+FE/.env.local
+FE/.env.*.local
+BE/.env
+BE/.env.local
+BE/.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# local docker data
+.data/
