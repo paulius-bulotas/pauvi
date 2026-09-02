@@ -1,10 +1,11 @@
 [Unit]
-Description=Check Pauvi GitHub for changes every 15 minutes
+Description=Check Pauvi repository every 30 minutes
 
 [Timer]
-OnCalendar=*-*-* *:00,15,30,45:00
+OnBootSec=3min
+OnUnitActiveSec=30min
 Persistent=true
-AccuracySec=30s
+RandomizedDelaySec=0
 
 [Install]
 WantedBy=timers.target

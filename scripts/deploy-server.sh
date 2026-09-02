@@ -41,9 +41,7 @@ gitp fetch --prune origin "$BRANCH"
 REMOTE_COMMIT="$(gitp rev-parse "origin/$BRANCH")"
 DEPLOYED_COMMIT="$(cat "$COMMIT_FILE" 2>/dev/null || true)"
 
-FORCE="${1:-}"
-
-if [[ "$FORCE" != "--force" && "$REMOTE_COMMIT" == "$DEPLOYED_COMMIT" ]]; then
+if [[ "${1:-}" != "--force" && "$REMOTE_COMMIT" == "$DEPLOYED_COMMIT" ]]; then
     echo "No new commit. Nothing to deploy."
     exit 0
 fi
@@ -62,20 +60,25 @@ fi
 echo "Checking out $REMOTE_COMMIT..."
 gitp reset --hard "origin/$BRANCH"
 
-ACTIVE="$(cat "$ACTIVE_FILE" 2>/dev/null || echo blue)"
-
-if [[ "$ACTIVE" == "blue" ]]; then
-    TARGET="green"
-    FRONTEND_PORT=8083
-    BACKEND_PORT=3003
-
-    OLD_FRONTEND_PORT=8081
-    OLD_BACKEND_PORT=3001
+if [[ -f "$ACTIVE_FILE" ]]; then
+    ACTIVE="$(cat "$ACTIVE_FILE")"
+    if [[ "$ACTIVE" == "blue" ]]; then
+        TARGET="green"
+        FRONTEND_PORT=8083
+        BACKEND_PORT=3003
+        OLD_FRONTEND_PORT=8081
+        OLD_BACKEND_PORT=3001
+    else
+        TARGET="blue"
+        FRONTEND_PORT=8081
+        BACKEND_PORT=3001
+        OLD_FRONTEND_PORT=8083
+        OLD_BACKEND_PORT=3003
+    fi
 else
     TARGET="blue"
     FRONTEND_PORT=8081
     BACKEND_PORT=3001
-
     OLD_FRONTEND_PORT=8083
     OLD_BACKEND_PORT=3003
 fi
@@ -92,7 +95,7 @@ docker compose \
     --env-file .env \
     build --pull
 
-echo "Starting inactive slot: $TARGET"
+echo "Starting slot: $TARGET"
 
 FRONTEND_PORT="$FRONTEND_PORT" \
 BACKEND_PORT="$BACKEND_PORT" \
@@ -114,10 +117,9 @@ API_HEALTH="$(
 )"
 
 echo "$API_HEALTH"
-
 echo "$API_HEALTH" | grep -q '"database":true'
 
-echo "New slot healthy. Switching Apache..."
+echo "New slot healthy. Preparing Apache switch..."
 
 TMP="$(mktemp)"
 
@@ -136,7 +138,6 @@ cat >"$TMP" <<APACHE
 APACHE
 
 BACKUP="${BALANCER_CONF}.bak"
-
 if [[ -f "$BALANCER_CONF" ]]; then
     cp "$BALANCER_CONF" "$BACKUP"
 fi
@@ -145,12 +146,10 @@ install -m 0644 "$TMP" "$BALANCER_CONF"
 rm -f "$TMP"
 
 if ! apache2ctl configtest; then
-    echo "Apache config test failed. Rolling back."
-
+    echo "Apache config test failed. Rolling back balancer config."
     if [[ -f "$BACKUP" ]]; then
         cp "$BACKUP" "$BALANCER_CONF"
     fi
-
     exit 1
 fi
 

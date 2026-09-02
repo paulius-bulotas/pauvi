@@ -3,19 +3,15 @@ services:
     image: mysql:8.4
     container_name: pauvi-mysql
     restart: unless-stopped
-
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-
     volumes:
       - ${DATA_ROOT}/mysql:/var/lib/mysql
-
     ports:
       - "192.168.1.254:${MYSQL_HOST_PORT:-3306}:3306"
-
     healthcheck:
       test:
         [
@@ -26,7 +22,6 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
-
     networks:
       db:
         aliases:

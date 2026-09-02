@@ -1,9 +1,10 @@
 [Unit]
-Description=Update and deploy Pauvi Docker stack
-After=network-online.target docker.service
+Description=Pauvi blue-green deployment
+After=network-online.target docker.service apache2.service
 Wants=network-online.target
 Requires=docker.service
 
 [Service]
 Type=oneshot
+User=root
 ExecStart=/usr/local/bin/pauvi-deploy
